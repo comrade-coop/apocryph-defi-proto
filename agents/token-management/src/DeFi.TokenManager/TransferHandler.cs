@@ -7,7 +7,7 @@ namespace DeFi.TokenManager
     {
         public static void Run(Transfer message, string from, State state)
         {
-            throw new NotImplementedException();
+            Console.WriteLine($"[DeFi.TokenManager] TokenManager received Transfer({message.To}) from {from}.");
         }
     } 
 }

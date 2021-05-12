@@ -19,20 +19,24 @@ namespace Agents.Test
             _messages = new Queue<(object, string)>();
         }
 
-        public string RegisterAgent(Type stateType)
+        public string RegisterAgent(Type stateType, Type[] whitelist = null)
         {
-            var result = Guid.NewGuid().ToString();
+            var agent = Guid.NewGuid().ToString();
             var assembly = Assembly.GetAssembly(stateType);
-            _agents[result] = (assembly, assembly.CreateInstance(stateType.FullName));
+            _agents[agent] = (assembly, assembly.CreateInstance(stateType.FullName));
+            
+            var result = agent;
+            if (whitelist != null)
+            {
+                result = Guid.NewGuid().ToString();
+                _references[result] = (agent, whitelist);
+            }
             return result;
         }
 
-        public void Start(string agent, object message = null)
+        public void Start(object message)
         {
-            var target = Guid.NewGuid().ToString();
-            _references[target] = (agent, new[] { message.GetType() });
-            Execute(target, message, nameof(AgentsEnvironment));
-
+            _messages.Enqueue((message, nameof(AgentsEnvironment)));
             RunMessagesLoop();
         }
 
@@ -44,52 +48,54 @@ namespace Agents.Test
                 var sourceMessageType = sourceMessage.GetType();
 
                 var toRef = (string)sourceMessageType.GetProperty("To").GetValue(sourceMessage);
-                var (target, whitelist) = _references[toRef];
-                
+                var (agent, whitelist) = _references[toRef];
+
                 var messageType = whitelist.FirstOrDefault(t => t.Name == sourceMessageType.Name);
-                if(messageType == null)
+                if (messageType == null)
                 {
-                    throw new Exception($"Reference doesn't support message type {sourceMessageType.Name}");    
+                    throw new Exception($"Reference doesn't support message type {sourceMessageType.Name}");
                 }
 
                 var message = CloneMessage(messageType, sourceMessage, from);
-                Execute(target, message, from);
+                Execute(agent, message, from);
             }
         }
 
-        private void Execute(string target, object message, string from)
+        private void Execute(string agent, object message, string from)
         {
-            var (agent, types) = _references[target];
-            var targetType = types.First(t => t.Name == message.GetType().Name);
-            var targetMessage = CloneMessage(targetType, message, from);
-
             var (assmebly, state) = _agents[agent];
-            var handler = assmebly.GetType($"{targetType.Name}Handler").GetMethod("Run");
-            var output = handler.Invoke(null, new object[] { targetMessage, from, state });
+            var handler = assmebly.GetTypes().First(t => t.Name == $"{message.GetType().Name}Handler").GetMethod("Run");
+            var output = handler.Invoke(null, new object[] { message, from, state });
 
             if (output is IEnumerable outputMessages)
             {
                 foreach (var outputMessage in outputMessages)
                 {
-                    _messages.Enqueue((outputMessage, target));
+                    _messages.Enqueue((outputMessage, agent));
                 }
             }
-            else
+            else if(output != null)
             {
-                _messages.Enqueue((output, target));
+                _messages.Enqueue((output, agent));
             }
         }
 
         private object CloneMessage(Type targetType, object sourceMessage, string sourceAgent)
         {
+            var result = Activator.CreateInstance(targetType);
             var sourceMessageType = sourceMessage.GetType();
-            foreach(var property in sourceMessageType.GetProperties())
+            foreach (var property in sourceMessageType.GetProperties())
             {
-                if(property.Name.EndsWith("Ref"))
+                var value = property.GetValue(sourceMessage);
+                if (property.Name.EndsWith("Ref") && value is Type[] whitelist)
                 {
-
+                    var reference = Guid.NewGuid().ToString();
+                    _references[reference] = (sourceAgent, whitelist);
+                    value = reference;
                 }
+                targetType.GetProperty(property.Name).SetValue(result, value);
             }
+            return result;
         }
     }
 }

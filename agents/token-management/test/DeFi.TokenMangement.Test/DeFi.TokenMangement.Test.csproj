@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="../../../../environment/test/dotnet/Agents.Test/Agents.Test.csproj" />
     <ProjectReference Include="../../src/DeFi.TokenManager/DeFi.TokenManager.csproj" />
+    <ProjectReference Include="../../src/DeFi.User/DeFi.User.csproj" />
   </ItemGroup>
 
 </Project>
