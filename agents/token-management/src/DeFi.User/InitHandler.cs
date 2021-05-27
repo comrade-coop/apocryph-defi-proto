@@ -8,6 +8,7 @@ namespace DeFi.User
         public static Transfer Run(Init message, string from, State state)
         {
             Console.WriteLine($"[DeFi.User] User received Init({message.To}) from {from}.");
+
             return new Transfer { To = message.TokenManagerRef };
         }
     } 

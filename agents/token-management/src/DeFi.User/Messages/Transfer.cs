@@ -2,8 +2,7 @@ using System;
 
 namespace DeFi.User.Messages
 {
-    public class Transfer
+    public class Transfer : BaseMessage
     {
-        public string To { get; set; }
     }
 }
