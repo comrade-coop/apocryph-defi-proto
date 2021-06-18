@@ -28,15 +28,12 @@ namespace DeFi.TokenManager
 
             //
             // ----------------
-            // Agent meat goes here?
+            // Agent meat goes here:
               
-            state.blanaces[recipient] += message.amount;
+            state.balances[message.sender] = state.balances[message.sender] - message.amountToTransfer;
+            state.balances[message.recipient] = state.balances[message.recipient] + message.amountToTransfer;
             
-            Console.WriteLine($"[DeFi.TokenManager] TokenManager received Transfer({message.To}) from {from}.");
-            
-            /*
-             * "Forwards/approves/..." the transfer
-             */
+            Console.WriteLine($"[DeFi.TokenManager] TokenManager received Transfer({message.sender} -> {message.amountToTransfer} -> {message.recipient}) from {from}.");
         }
     } 
 

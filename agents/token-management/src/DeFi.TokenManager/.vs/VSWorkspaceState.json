@@ -1,9 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Messages",
-    "\\obj"
+    "\\Messages"
   ],
-  "SelectedNode": "\\TransferHandler.cs",
+  "SelectedNode": "\\State.cs",
   "PreviewInSolutionExplorer": false
 }

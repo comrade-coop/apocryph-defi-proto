@@ -8,8 +8,9 @@ namespace DeFi.TokenManager.Messages
          * V - transfer values, hold validation data, etc.
          *  -> Yes
          */
+
         public int amountToTransfer;
         public string recipient;
-        public string sender; //==from
+        public string sender;
     }
 }
